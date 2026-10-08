@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Order Menu — MVP</title>
+<style>
+:root{
+  --bg:#f5f5f3; --card:#fff; --text:#171717; --muted:#777;
+  --line:#e7e7e4; --accent:#111; --accentText:#fff;
+  --success:#18864b; --danger:#d83a3a; --soft:#ededeb;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button{font:inherit;border:0;cursor:pointer}
+.app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:20}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.04em}
+.order-type{display:flex;background:var(--soft);border-radius:12px;padding:4px;gap:3px}
+.order-type button{padding:10px 16px;border-radius:9px;background:transparent;color:#666;font-weight:700}
+.order-type button.active{background:#fff;color:#111;box-shadow:0 1px 5px #00000012}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100vh - 72px)}
+.menu-area{padding:24px 28px 110px;min-width:0}
+.hero{display:flex;justify-content:space-between;align-items:end;margin-bottom:20px}
+.hero h1{margin:0;font-size:32px;letter-spacing:-.05em}
+.hero p{margin:6px 0 0;color:var(--muted)}
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:12px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;background:#fff;border:1px solid var(--line);padding:11px 17px;border-radius:999px;font-weight:750;color:#555}
+.tab.active{background:#111;color:#fff;border-color:#111}
+.section-title{display:flex;justify-content:space-between;align-items:center;margin:22px 0 12px}
+.section-title h2{font-size:18px;margin:0;letter-spacing:-.02em}
+.section-title span{font-size:13px;color:var(--muted)}
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:14px}
+.product{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-height:300px;transition:.15s}
+.product:hover{transform:translateY(-1px);box-shadow:0 8px 24px #0000000b}
+.photo{height:155px;background:#ddd;position:relative;overflow:hidden}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.badge{position:absolute;left:10px;top:10px;background:#fff;border-radius:999px;padding:6px 9px;font-size:11px;font-weight:800}
+.product-info{padding:14px;display:flex;flex-direction:column;flex:1}
+.product-info h3{font-size:16px;margin:0 0 5px;letter-spacing:-.02em}
+.desc{font-size:12px;line-height:1.4;color:var(--muted);min-height:34px}
+.price-row{margin-top:auto;padding-top:12px;display:flex;justify-content:space-between;align-items:center}
+.price{font-weight:850}
+.add{background:#111;color:#fff;border-radius:10px;padding:9px 13px;font-weight:800}
+.cart-panel{background:#fff;border-left:1px solid var(--line);position:sticky;top:72px;height:calc(100vh - 72px);display:flex;flex-direction:column}
+.cart-head{padding:22px 22px 16px;border-bottom:1px solid var(--line)}
+.cart-head h2{margin:0;font-size:22px;letter-spacing:-.04em}
+.cart-head p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.cart-items{padding:14px 20px;overflow:auto;flex:1}
+.empty{text-align:center;color:#888;padding:60px 15px}
+.cart-item{padding:13px 0;border-bottom:1px solid var(--line)}
+.cart-item-top{display:flex;justify-content:space-between;gap:10px}
+.cart-item h4{margin:0;font-size:14px}
+.cart-item small{color:var(--muted);display:block;margin-top:3px}
+.qty{display:flex;align-items:center;gap:9px;margin-top:9px}
+.qty button{width:27px;height:27px;border-radius:8px;background:var(--soft);font-weight:900}
+.qty span{font-weight:800;min-width:16px;text-align:center}
+.addons{margin-top:8px;font-size:12px;color:#555}
+.cart-bottom{padding:16px 20px 20px;border-top:1px solid var(--line);background:#fff}
+.summary-row{display:flex;justify-content:space-between;margin:7px 0;color:#555}
+.summary-row.total{font-size:21px;font-weight:900;color:#111;margin-top:14px}
+.checkout{width:100%;padding:15px;background:#111;color:#fff;border-radius:12px;font-weight:850;margin-top:13px}
+.checkout:disabled{opacity:.35;cursor:not-allowed}
+.modal-wrap{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal-wrap.show{display:flex}
+.modal{width:min(520px,100%);background:#fff;border-radius:20px;padding:24px;box-shadow:0 30px 80px #0005}
+.modal h2{margin:0 0 5px;letter-spacing:-.04em}
+.modal p{color:var(--muted);font-size:13px}
+.receipt{border:1px dashed #bbb;padding:15px;margin:18px 0;max-height:45vh;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;white-space:pre-wrap}
+.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.secondary{background:var(--soft);padding:13px;border-radius:11px;font-weight:800}
+.primary{background:#111;color:#fff;padding:13px;border-radius:11px;font-weight:800}
+@media(max-width:900px){
+  .layout{display:block}
+  .cart-panel{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;border-left:0;border-top:1px solid var(--line);z-index:30}
+  .cart-items{display:none}
+  .cart-head{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border:0}
+  .cart-head p{margin:0}
+  .cart-bottom{padding:0 18px 14px;border:0}
+  .summary-row:not(.total){display:none}
+  .summary-row.total{margin:0}
+  .checkout{margin-top:8px}
+  .menu-area{padding:18px 16px 150px}
+  .topbar{padding:0 16px;height:64px}
+  .cart-panel{top:auto}
+  .products{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .product{min-height:260px}
+  .photo{height:120px}
+  .hero h1{font-size:27px}
+}
+@media(max-width:500px){
+  .brand{font-size:17px}
+  .order-type button{padding:8px 10px;font-size:12px}
+  .products{grid-template-columns:1fr 1fr}
+  .product-info{padding:10px}
+  .product-info h3{font-size:14px}
+  .desc{font-size:11px}
+  .add{padding:8px 10px;font-size:12px}
+}
+@media print{
+  body{background:#fff}
+  body>*{display:none!important}
+  #printReceipt{display:block!important}
+}
+#printReceipt{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">YOUR STORE</div>
+    <div class="order-type" id="orderType">
+      <button class="active" data-type="Dine In">Dine In</button>
+      <button data-type="Take Out">Take Out</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="menu-area">
+      <div class="hero">
+        <div>
+          <h1>What would you like?</h1>
+          <p>Choose your food, customize it, then print your order.</p>
+        </div>
+      </div>
+      <nav class="tabs" id="tabs"></nav>
+      <div id="menu"></div>
+    </section>
+
+    <aside class="cart-panel">
+      <div class="cart-head">
+        <div>
+          <h2>Your Order</h2>
+          <p id="orderLabel">Dine In</p>
+        </div>
+        <div id="itemCount">0 items</div>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-bottom">
+        <div class="summary-row"><span>Subtotal</span><strong id="subtotal">₱0.00</strong></div>
+        <div class="summary-row"><span>Tax</span><strong id="tax">₱0.00</strong></div>
+        <div class="summary-row total"><span>Total</span><span id="total">₱0.00</span></div>
+        <button class="checkout" id="checkout" disabled>Review & Print Order</button>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<div class="modal-wrap" id="modal">
+  <div class="modal">
+    <h2>Ready to print?</h2>
+    <p id="modalMeta"></p>
+    <div class="receipt" id="receiptPreview"></div>
+    <div class="modal-actions">
+      <button class="secondary" id="cancel">Back to Order</button>
+      <button class="primary" id="print">Print Order</button>
+    </div>
+  </div>
+</div>
+
+<pre id="printReceipt"></pre>
+
+<script>
+const MENU = [
+  {id:"burger",name:"Classic Burger",category:"Mains",price:180,desc:"Beef patty, lettuce, tomato and house sauce.",tag:"Best Seller",img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=700&q=80",addons:["Extra Cheese","Extra Patty"]},
+  {id:"chicken",name:"Crispy Chicken",category:"Mains",price:195,desc:"Crispy fried chicken with gravy.",tag:"Must Try",img:"https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=700&q=80",addons:["Extra Gravy","Extra Rice"]},
+  {id:"pasta",name:"Creamy Pasta",category:"Mains",price:175,desc:"Creamy pasta with parmesan and herbs.",tag:"",img:"https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=700&q=80",addons:["Extra Cheese","Chicken"]},
+  {id:"fries",name:"Classic Fries",category:"Sides",price:95,desc:"Crispy golden fries, lightly salted.",tag:"",img:"https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=700&q=80",addons:["Cheese Sauce","BBQ Dip"]},
+  {id:"rice",name:"Garlic Rice",category:"Sides",price:65,desc:"Fragrant garlic fried rice.",tag:"",img:"https://images.unsplash.com/photo-1516684732162-798a0062be99?auto=format&fit=crop&w=700&q=80",addons:["Extra Garlic"]},
+  {id:"cola",name:"Cola",category:"Drinks",price:70,desc:"Cold and refreshing.",tag:"",img:"https://images.unsplash.com/photo-1629203851122-3726ecdf080e?auto=format&fit=crop&w=700&q=80",addons:["No Ice","Extra Ice"]},
+  {id:"lemonade",name:"House Lemonade",category:"Drinks",price:85,desc:"Fresh, bright and lightly sweet.",tag:"New",img:"https://images.unsplash.com/photo-1523677011781-c91d1bbe2f9e?auto=format&fit=crop&w=700&q=80",addons:["Less Sugar","No Ice"]},
+  {id:"cheese",name:"Extra Cheese",category:"Add Ons",price:35,desc:"Add more melted cheese.",tag:"",img:"https://images.unsplash.com/photo-1618164436241-4473940d1f5c?auto=format&fit=crop&w=700&q=80",addons:[]},
+  {id:"egg",name:"Fried Egg",category:"Add Ons",price:30,desc:"Sunny-side-up fried egg.",tag:"",img:"https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=700&q=80",addons:[]}
+];
+
+let cart=[];
+let orderType="Dine In";
+let activeTab="Featured";
+
+const money=n=>"₱"+n.toLocaleString("en-PH",{minimumFractionDigits:2,maximumFractionDigits:2});
+const categories=["Featured","Mains","Sides","Drinks","Add Ons"];
+
+function renderTabs(){
+  document.getElementById("tabs").innerHTML=categories.map(c=>
+    `<button class="tab ${c===activeTab?"active":""}" onclick="setTab('${c}')">${c}</button>`).join("");
+}
+
+function setTab(tab){activeTab=tab;renderTabs();renderMenu();}
+
+function visibleProducts(){
+  if(activeTab==="Featured"){
+    return MENU.filter(x=>["Best Seller","Must Try","New"].includes(x.tag));
+  }
+  return MENU.filter(x=>x.category===activeTab);
+}
+
+function renderMenu(){
+  const products=visibleProducts();
+  document.getElementById("menu").innerHTML=`
+    <div class="section-title"><h2>${activeTab==="Featured"?"Popular right now":activeTab}</h2><span>${products.length} items</span></div>
+    <div class="products">
+      ${products.map(p=>`
+        <article class="product">
+          <div class="photo">
+            <img src="${p.img}" alt="${p.name}" loading="lazy">
+            ${p.tag?`<span class="badge">${p.tag}</span>`:""}
+          </div>
+          <div class="product-info">
+            <h3>${p.name}</h3>
+            <div class="desc">${p.desc}</div>
+            <div class="price-row"><span class="price">${money(p.price)}</span><button class="add" onclick="addItem('${p.id}')">Add</button></div>
+          </div>
+        </article>`).join("")}
+    </div>`;
+}
+
+function addItem(id){
+  const p=MENU.find(x=>x.id===id);
+  const existing=cart.find(x=>x.id===id && !x.addons?.length);
+  if(existing) existing.qty++;
+  else cart.push({id:p.id,name:p.name,price:p.price,qty:1,addons:[]});
+  renderCart();
+}
+
+function changeQty(index,delta){
+  cart[index].qty+=delta;
+  if(cart[index].qty<=0)cart.splice(index,1);
+  renderCart();
+}
+
+function renderCart(){
+  const count=cart.reduce((a,x)=>a+x.qty,0);
+  const subtotal=cart.reduce((a,x)=>a+x.price*x.qty,0);
+  const tax=0;
+  document.getElementById("itemCount").textContent=`${count} ${count===1?"item":"items"}`;
+  document.getElementById("subtotal").textContent=money(subtotal);
+  document.getElementById("tax").textContent=money(tax);
+  document.getElementById("total").textContent=money(subtotal+tax);
+  document.getElementById("checkout").disabled=cart.length===0;
+
+  document.getElementById("cartItems").innerHTML=cart.length?cart.map((x,i)=>`
+    <div class="cart-item">
+      <div class="cart-item-top">
+        <div><h4>${x.name}</h4><small>${money(x.price)} each</small></div>
+        <strong>${money(x.price*x.qty)}</strong>
+      </div>
+      <div class="qty">
+        <button onclick="changeQty(${i},-1)">−</button>
+        <span>${x.qty}</span>
+        <button onclick="changeQty(${i},1)">+</button>
+      </div>
+    </div>`).join(""):`<div class="empty">Your order is empty.<br><br>Tap <b>Add</b> on a menu item to begin.</div>`;
+}
+
+function receiptText(){
+  const subtotal=cart.reduce((a,x)=>a+x.price*x.qty,0);
+  let s=`YOUR STORE\n`;
+  s+=`------------------------------\n`;
+  s+=`${orderType.toUpperCase()}\n`;
+  s+=`${new Date().toLocaleString("en-PH")}\n`;
+  s+=`------------------------------\n`;
+  cart.forEach(x=>{
+    s+=`${x.qty} x ${x.name}\n`;
+    s+=`    ${money(x.price*x.qty)}\n`;
+  });
+  s+=`------------------------------\n`;
+  s+=`TOTAL: ${money(subtotal)}\n`;
+  s+=`------------------------------\n`;
+  s+=`Please bring this order slip to the cashier.\n`;
+  return s;
+}
+
+function openCheckout(){
+  if(!cart.length)return;
+  document.getElementById("modalMeta").textContent=`${orderType} · ${cart.reduce((a,x)=>a+x.qty,0)} items · ${document.getElementById("total").textContent}`;
+  document.getElementById("receiptPreview").textContent=receiptText();
+  document.getElementById("modal").classList.add("show");
+}
+
+function printOrder(){
+  const receipt=receiptText();
+  // Native Android wrapper hook:
+  // If the app is packaged with an Android WebView, expose window.Android.printReceipt(receipt)
+  // to send ESC/POS bytes to the paired Bluetooth thermal printer.
+  if(window.Android && typeof window.Android.printReceipt==="function"){
+    window.Android.printReceipt(receipt);
+  }else{
+    document.getElementById("printReceipt").textContent=receipt;
+    window.print();
+  }
+}
+
+document.getElementById("checkout").onclick=openCheckout;
+document.getElementById("cancel").onclick=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("print").onclick=printOrder;
+document.querySelectorAll("#orderType button").forEach(btn=>{
+  btn.onclick=()=>{
+    orderType=btn.dataset.type;
+    document.querySelectorAll("#orderType button").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("orderLabel").textContent=orderType;
+  };
+});
+renderTabs();renderMenu();renderCart();
+</script>
+</body>
+</html>
