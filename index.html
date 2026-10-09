@@ -85,14 +85,6 @@ h1,h2,h3,h4,.price,.checkout,.primary,.secondary,.start-card,.tab,.add,.view-ord
 /* ---------- Main layout ---------- */
 .app{min-height:100vh}
 .layout{display:block;min-height:100vh}
-.highlight-carousel{width:100%;aspect-ratio:5/2;overflow:hidden;position:relative;background:#e8e8e5}
-.highlight-track{display:flex;width:100%;height:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x}
-.highlight-track::-webkit-scrollbar{display:none}
-.highlight-slide{flex:0 0 100%;width:100%;height:100%;scroll-snap-align:start}
-.highlight-slide img{display:block;width:100%;height:100%;object-fit:cover}
-.highlight-dots{position:absolute;left:50%;bottom:var(--space-3);transform:translateX(-50%);display:flex;align-items:center;gap:6px;pointer-events:none}
-.highlight-dot{width:6px;height:6px;border-radius:999px;background:rgba(255,255,255,.55);transition:width .18s ease}
-.highlight-dot.active{width:18px;background:#fff}
 
 .menu-area{padding:var(--space-6) var(--content-pad) 120px;min-width:0}
 .hero{margin-bottom:var(--space-3)}
@@ -197,14 +189,16 @@ body.drawer-open{overflow:hidden}
 .frequent-section{padding:var(--space-5) 0 var(--space-2);border-top:1px solid var(--line);margin-top:var(--space-4)}
 .frequent-head h3{font-size:18px;line-height:1.2;font-weight:800}
 .frequent-head p{margin-top:var(--space-1);color:var(--muted);font-size:12px}
-.frequent-list{display:flex;gap:var(--space-2);overflow-x:auto;scrollbar-width:none;padding:var(--space-3) 0 var(--space-2)}
+.frequent-groups{display:grid;gap:var(--space-5);margin-top:var(--space-3)}
+.frequent-group h4{font-size:13px;line-height:1.2;font-weight:800;margin:0 0 var(--space-2)}
+.frequent-list{display:flex;gap:var(--space-2);overflow-x:auto;scrollbar-width:none;padding:0 0 var(--space-1)}
 .frequent-list::-webkit-scrollbar{display:none}
-.frequent-card{flex:0 0 132px;border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden;background:var(--surface);cursor:pointer}
+.frequent-card{flex:0 0 132px;width:132px;padding:0;border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden;background:var(--surface);cursor:pointer;text-align:left;box-shadow:none}
 .frequent-card:active{transform:scale(.985)}
 .frequent-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.frequent-card-body{padding:var(--space-3)}
-.frequent-card-name{font-size:12px;font-weight:700;line-height:1.25}
-.frequent-card-price{margin-top:var(--space-1);font-size:12px;color:var(--muted)}
+.frequent-card-body{display:block;padding:var(--space-3)}
+.frequent-card-name{display:block;font-size:12px;font-weight:700;line-height:1.25}
+.frequent-card-price{display:block;margin-top:var(--space-1);font-size:12px;color:var(--muted)}
 
 /* ---------- Order snackbar ---------- */
 .view-orders-bar{
@@ -287,17 +281,6 @@ body.drawer-open{overflow:hidden}
 
 <div class="app">
 <main class="layout">
-<div class="highlight-carousel" id="highlightCarousel" aria-label="Highlights">
-  <div class="highlight-track" id="highlightTrack">
-    <div class="highlight-slide"><img src="https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=1600&q=85" alt="" loading="eager"></div>
-    <div class="highlight-slide"><img src="https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1600&q=85" alt="" loading="lazy"></div>
-    <div class="highlight-slide"><img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1600&q=85" alt="" loading="lazy"></div>
-    <div class="highlight-slide"><img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1600&q=85" alt="" loading="lazy"></div>
-    <div class="highlight-slide"><img src="https://images.unsplash.com/photo-1498654896293-37aacf113fd9?auto=format&fit=crop&w=1600&q=85" alt="" loading="lazy"></div>
-  </div>
-  <div class="highlight-dots" id="highlightDots" aria-hidden="true"></div>
-</div>
-
 <section class="menu-area">
 <div class="hero"><h1 id="menuTitle">Dine In</h1></div>
 <nav class="tabs" id="tabs"></nav>
@@ -318,12 +301,10 @@ body.drawer-open{overflow:hidden}
   
 <div class="frequent-section" id="frequentSection">
   <div class="frequent-head">
-    <div>
-      <h3>Frequently Ordered With</h3>
-      <p>Best seller drinks you might like</p>
-    </div>
+    <h3>Frequently Ordered With</h3>
+    <p>Complete your order with a few favorites.</p>
   </div>
-  <div class="frequent-list" id="frequentList"></div>
+  <div class="frequent-groups" id="frequentList"></div>
 </div>
 
 <button class="checkout" id="checkout" disabled>Check Out</button>
@@ -385,7 +366,7 @@ const MENU=[
 ].map(x=>({id:x[0],name:x[1],category:x[2],price:x[3],desc:x[4],tag:x[5],img:x[6]}));
 
 let cart=[],orderType="Dine In",activeTab="Best Sellers";
-const categories=["Best Sellers","New Items","Mains","Sides","Drinks","Add Ons","Desserts"];
+const categories=["Best Sellers","Mains","Sides","Desserts","Drinks","Add-ons"];
 
 MENU.push(
   {id:"dessert-1",name:"Chocolate Cake",category:"Desserts",price:180,desc:"Rich chocolate cake.",tag:"Best Seller",img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=900&q=85"},
@@ -442,8 +423,7 @@ function startOrder(type){
 
 function visibleProducts(){
  if(activeTab==="Best Sellers")return MENU.filter(x=>x.tag==="Best Seller"||x.tag==="Must Try");
- if(activeTab==="New Items")return MENU.filter(x=>x.tag==="New");
- return MENU.filter(x=>x.category===activeTab);
+  return MENU.filter(x=>x.category===activeTab || (activeTab==="Add-ons" && x.category==="Add Ons"));
 }
 function renderTabs(){
  document.getElementById("tabs").innerHTML=categories.map(c=>`<button class="tab ${c===activeTab?"active":""}" onclick="setTab('${c}')">${c}</button>`).join("");
@@ -498,8 +478,6 @@ function finishOrder(){
 }
 async function printOrder(){
   const receipt=createReceipt();
-
-  // Preferred path: Android/native Bluetooth bridge (including Classic Bluetooth/SPP).
   const android=window.Android;
   const fn=android && (
     typeof android.printReceipt==="function" ? android.printReceipt :
@@ -507,97 +485,20 @@ async function printOrder(){
     typeof android.printOrder==="function" ? android.printOrder : null
   );
 
-  if(fn){
-    try{
-      Promise.resolve(fn.call(android,receipt)).then(
-        ()=>finishOrder(),
-        err=>{
-          console.error("Native printer:",err);
-          alert("Bluetooth printing failed. Check that the thermal printer is paired and connected.");
-        }
-      );
-    }catch(err){
-      console.error("Native printer:",err);
-      alert("Bluetooth printing failed. Check that the thermal printer is paired and connected.");
-    }
+  // Native Android printer bridge is the only printing path.
+  // This intentionally never invokes Web Bluetooth or a browser pairing prompt.
+  if(!fn){
+    alert("Printer unavailable. Please make sure the paired thermal printer is connected.");
     return;
   }
 
-  // Browser path: Web Bluetooth for compatible BLE ESC/POS printers.
-  if(!navigator.bluetooth){
-    alert("This browser cannot access Bluetooth printers. Classic Bluetooth/SPP thermal printers require the Android/native printer bridge.");
-    return;
-  }
-
-  (async function(){
-    let device=null;
-    if(typeof navigator.bluetooth.getDevices==="function"){
-      try{
-        const known=await navigator.bluetooth.getDevices();
-        device=known.find(d=>d.gatt && d.gatt.connected)||known[0]||null;
-      }catch(e){}
-    }
-    if(!device){
-      device=await navigator.bluetooth.requestDevice({
-        acceptAllDevices:true,
-        optionalServices:[
-          "000018f0-0000-1000-8000-00805f9b34fb",
-          "0000ff00-0000-1000-8000-00805f9b34fb"
-        ]
-      });
-    }
-    return device;
-  })().then(async device=>{
-    const server=await device.gatt.connect();
-    let characteristic=null;
-    const ids=[
-      "000018f0-0000-1000-8000-00805f9b34fb",
-      "0000ff00-0000-1000-8000-00805f9b34fb"
-    ];
-
-    for(const id of ids){
-      try{
-        const service=await server.getPrimaryService(id);
-        const cs=await service.getCharacteristics();
-        characteristic=cs.find(c=>c.properties.writeWithoutResponse)||cs.find(c=>c.properties.write);
-        if(characteristic)break;
-      }catch(e){}
-    }
-
-    if(!characteristic){
-      const services=await server.getPrimaryServices();
-      for(const service of services){
-        const cs=await service.getCharacteristics();
-        characteristic=cs.find(c=>c.properties.writeWithoutResponse)||cs.find(c=>c.properties.write);
-        if(characteristic)break;
-      }
-    }
-
-    if(!characteristic) throw new Error("No writable BLE printer characteristic.");
-
-    const data=buildEscPosReceipt(receipt);
-    for(let i=0;i<data.length;i+=180){
-      const chunk=data.slice(i,i+180);
-      if(characteristic.properties.writeWithoutResponse) await characteristic.writeValueWithoutResponse(chunk);
-      else await characteristic.writeValue(chunk);
-    }
-
-    try{device.gatt.disconnect();}catch(e){}
+  try{
+    await Promise.resolve(fn.call(android,receipt));
     finishOrder();
-  }).catch(err=>{
-    console.error("Web Bluetooth:",err);
-    alert("Could not print. BLE printing requires a compatible BLE thermal printer. Classic Bluetooth/SPP printers require the Android printer bridge.");
-  });
-}
-
-function buildEscPosReceipt(text){
-  const enc=new TextEncoder();
-  const a=new Uint8Array([0x1b,0x40]);
-  const b=enc.encode(text+"\n\n\n");
-  const c=new Uint8Array([0x1d,0x56,0x00]);
-  const r=new Uint8Array(a.length+b.length+c.length);
-  r.set(a,0);r.set(b,a.length);r.set(c,a.length+b.length);
-  return r;
+  }catch(err){
+    console.error("Native printer:",err);
+    alert("Printing failed. Please make sure the paired thermal printer is connected.");
+  }
 }
 
 document.getElementById("checkout").onclick=openCheckout;
@@ -615,42 +516,41 @@ window.addEventListener("popstate",function(){
 
 
 
-(function(){
-  const track=document.getElementById("highlightTrack"),dots=document.getElementById("highlightDots");
-  if(!track||!dots)return;
-  const slides=[...track.querySelectorAll(".highlight-slide")];
-  slides.forEach((_,i)=>{const d=document.createElement("span");d.className="highlight-dot"+(i===0?" active":"");dots.appendChild(d)});
-  const update=()=>{const n=Math.round(track.scrollLeft/Math.max(1,track.clientWidth));[...dots.children].forEach((d,i)=>d.classList.toggle("active",i===n))};
-  track.addEventListener("scroll",update,{passive:true});
-  let timer=setInterval(()=>{if(document.hidden)return;const n=(Math.round(track.scrollLeft/Math.max(1,track.clientWidth))+1)%slides.length;track.scrollTo({left:n*track.clientWidth,behavior:"smooth"})},5000);
-  track.addEventListener("touchstart",()=>clearInterval(timer),{passive:true});
-  track.addEventListener("touchend",()=>{clearInterval(timer);timer=setInterval(()=>{if(document.hidden)return;const n=(Math.round(track.scrollLeft/Math.max(1,track.clientWidth))+1)%slides.length;track.scrollTo({left:n*track.clientWidth,behavior:"smooth"})},5000)},{passive:true});
-})();
 
 function renderFrequentlyOrdered(){
   const list=document.getElementById("frequentList");
   const section=document.getElementById("frequentSection");
   if(!list || !section)return;
 
-  const drinks=MENU.filter(p=>
-    String(p.category).toLowerCase()==="drinks" &&
-    (String(p.tag).toLowerCase().includes("best") ||
-     String(p.tag).toLowerCase().includes("must"))
-  ).slice(0,5);
+  const groups=[
+    {label:"Drinks",category:"Drinks"},
+    {label:"Sides",category:"Sides"},
+    {label:"Desserts",category:"Desserts"}
+  ];
 
-  const fallback=MENU.filter(p=>String(p.category).toLowerCase()==="drinks").slice(0,5);
-  const items=drinks.length?drinks:fallback;
+  list.innerHTML=groups.map(group=>{
+    const items=MENU.filter(p=>p.category===group.category)
+      .sort((a,b)=>((b.tag==="Best Seller"||b.tag==="Must Try")-(a.tag==="Best Seller"||a.tag==="Must Try")))
+      .slice(0,2);
 
-  list.innerHTML=items.map(p=>`
-    <div class="frequent-card" onclick="addItem('${p.id}')">
-      <img src="${p.img}" alt="" loading="lazy">
-      <div class="frequent-card-body">
-        <div class="frequent-card-name">${p.name}</div>
-        <div class="frequent-card-price">₱${Number(p.price).toLocaleString()}</div>
-      </div>
-    </div>
-  `).join("");
+    return `
+      <section class="frequent-group">
+        <h4>${group.label}</h4>
+        <div class="frequent-list">
+          ${items.map(p=>`
+            <button class="frequent-card" type="button" onclick="addItem('${p.id}')">
+              <img src="${p.img}" alt="${p.name}" loading="lazy">
+              <span class="frequent-card-body">
+                <span class="frequent-card-name">${p.name}</span>
+                <span class="frequent-card-price">${money(p.price)}</span>
+              </span>
+            </button>
+          `).join("")}
+        </div>
+      </section>`;
+  }).join("");
 }
+
 
 
 /* Reliable tab swipe */
@@ -684,8 +584,8 @@ function renderFrequentlyOrdered(){
     if(document.getElementById("cartPanel")?.classList.contains("open"))return;
 
     const target=e.target;
-    // Do not hijack swipes on the highlight carousel or controls.
-    if(target.closest(".highlight-carousel") || target.closest("button") || target.closest("a"))return;
+    // Do not hijack swipes on controls or links.
+    if(target.closest("button") || target.closest("a"))return;
 
     startX=e.touches[0].clientX;
     startY=e.touches[0].clientY;
